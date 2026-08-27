@@ -1,0 +1,11 @@
+title: STT 861 — Theory of Probability & Statistics I
+description: Graduate course in probability theory — Michigan State University, Fall 2026
+url: "https://guanquncao.github.io"
+baseurl: "/stt861"
+author: Guanqun Cao
+theme: null          # We use a custom index.html; no Jekyll theme needed
+plugins: []
+exclude:
+  - "*.tex"
+  - "*.log"
+  - "*.aux"
