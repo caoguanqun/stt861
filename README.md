@@ -1,7 +1,7 @@
 # STT 861 — Theory of Probability & Statistics I
 
 **Michigan State University, Department of Statistics & Probability**  
-**Instructor:** Guanqun Cao (`cao@msu.edu`)  
+**Instructor:** Guanqun Cao (`caoguanq@msu.edu`)  
 **Semester:** Fall 2026 | T/Th 11:00–12:20 pm | Wells Hall C506
 
 🌐 **Course Website:** [guanquncao.github.io/stt861](https://guanquncao.github.io/stt861)
