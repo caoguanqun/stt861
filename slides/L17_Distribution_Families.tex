@@ -1,0 +1,632 @@
+\documentclass[aspectratio=169,t,10pt]{beamer}
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array,multicol}
+\usepackage{tikz}
+\usetikzlibrary{patterns,shapes,arrows.meta,positioning,calc}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\usepackage{hyperref,xcolor}
+\usepackage{enumerate}
+
+\definecolor{msugreen}{RGB}{24,69,59}
+\definecolor{msugold} {RGB}{200,161,61}
+\definecolor{msulight}{RGB}{237,247,241}
+\definecolor{defbg}   {RGB}{232,242,255}
+\definecolor{thmbg}   {RGB}{255,252,230}
+\definecolor{exbg}    {RGB}{232,248,237}
+\definecolor{quizbg}  {RGB}{255,235,235}
+\definecolor{notebg}  {RGB}{245,245,245}
+\definecolor{hlblue}  {RGB}{0,90,160}
+
+\setbeamercolor{palette primary}   {bg=msugreen,fg=white}
+\setbeamercolor{palette secondary} {bg=msugreen!80,fg=white}
+\setbeamercolor{structure}         {fg=msugreen}
+\setbeamercolor{frametitle}        {bg=msugreen,fg=white}
+\setbeamercolor{title}             {bg=msugreen,fg=white}
+\setbeamercolor{block title}       {bg=msugreen,fg=white}
+\setbeamercolor{block body}        {bg=defbg}
+\setbeamercolor{alerted text}      {fg=msugold!80!black}
+\setbeamertemplate{navigation symbols}{}
+
+\setbeamertemplate{footline}{%
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=3.2ex,dp=1ex,left]{author in head/foot}
+      \hspace{0.8em} \footnotesize\insertshorttitle
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=3.2ex,dp=1ex,center]{title in head/foot}
+    
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=3.2ex,dp=1ex,right]{date in head/foot}
+      \insertframenumber/\inserttotalframenumber\hspace{0.8em}
+    \end{beamercolorbox}}%
+}
+
+\tcbset{
+  mydef/.style={enhanced,colback=defbg,colframe=hlblue,
+    fonttitle=\bfseries\small,title={#1},
+    boxrule=0.7pt,arc=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt},
+  mythm/.style={enhanced,colback=thmbg,colframe=msugreen,
+    fonttitle=\bfseries\small,title={#1},
+    boxrule=0.7pt,arc=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt},
+  myex/.style={enhanced,colback=exbg,colframe=msugreen!60!black,
+    fonttitle=\bfseries\small,title={#1},
+    boxrule=0.7pt,arc=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt},
+  myquiz/.style={enhanced,colback=quizbg,colframe=red!70!black,
+    fonttitle=\bfseries\small,title={#1},
+    boxrule=1pt,arc=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt},
+  mynote/.style={enhanced,colback=notebg,colframe=gray!60,
+    fonttitle=\bfseries\small,title={#1},
+    boxrule=0.5pt,arc=2pt,left=4pt,right=4pt,top=2pt,bottom=2pt},
+}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Corr}{\operatorname{Corr}}
+\newcommand{\iid}{\overset{\text{iid}}{\sim}}
+\newcommand{\given}{\,|\,}
+\newcommand{\emp}{\emptyset}
+
+\title[L19]{STT 861: Theory of Probability \& Statistics~I\\[4pt]
+       \large Chapter 3.4--3.6: Exponential Families, Location--Scale Families,\\ Inequalities and Identities}
+\author[Cao]{Guanqun Cao \quad\texttt{<caoguanq@msu.edu>}}
+\institute[MSU]{Department of Statistics \& Probability\\Michigan State University}
+\date[Fall 2026]{Fall 2026 \quad|\quad Wells Hall C506}
+
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+  \begin{center}\small\textcolor{gray}{Reference: Casella \& Berger Ch.~3, Sections 3.4, 3.5 and 3.6}\end{center}
+\end{frame}
+
+\begin{frame}{Where we are: from individual families to structure}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  We now have a catalogue (\S3.1--3.3): Binomial, Poisson, Gamma, Normal, Beta, Cauchy, \dots\ Each was studied one at a time.
+  \medskip\\
+  \textbf{Today: what do families have in common?}
+  \begin{itemize}\small
+    \item \textbf{\S3.4 Exponential families:} one form covers many families; moments come from a single derivative.
+    \item \textbf{\S3.5 Location--scale families:} how shifting and rescaling generate a family.
+    \item \textbf{\S3.6 Inequalities \& identities:} bounds on probabilities and tricks for moments.
+  \end{itemize}
+  \column{0.46\textwidth}
+  \begin{tcolorbox}[mynote={Why this matters later}]\small
+  \begin{itemize}
+    \item Sufficient statistics, MLEs and generalized linear models (Chapters 6--8, STT 862) are cleanest for exponential families.
+    \item Location--scale structure explains pivotal quantities and why $\bar X$, $s$ behave nicely.
+    \item Inequalities are the workhorse of convergence proofs (Ch.~5).
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+%% ================== 3.4 ==================
+\begin{frame}{\S3.4 Motivation: many families, one pattern}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  Compare three densities:
+  \begin{align*}
+  \text{Poisson:}&\ \tfrac1{x!}\,e^{-\lambda}\,\exp\{x\log\lambda\}\\
+  \text{Exponential:}&\ \tfrac1\beta\,\exp\{-x/\beta\}\\
+  \text{Bernoulli:}&\ (1-p)\exp\{x\log\tfrac p{1-p}\}
+  \end{align*}
+  Each is (function of $x$) $\times$ (function of $\theta$) $\times$ $\exp\{\text{(function of }\theta)\cdot(\text{function of }x)\}$.
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[mydef={Payoff of recognizing the pattern}]\small
+  Once a family fits this form we get, for free:
+  \begin{itemize}
+    \item $\E$ and $\Var$ by differentiating $\log c(\theta)$, with no integrals or sums;
+    \item the mgf of the sufficient statistic;
+    \item good behaviour of estimators and tests later in the course.
+  \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}[myquiz={Think (1 min)}]\small
+  Is the Uniform$(0,\theta)$ density $\frac1\theta I(0<x<\theta)$ of this form? \emph{(We will see: no.)}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Definition: exponential family}
+  \begin{tcolorbox}[mydef={Definition (CB 3.4.1)}]\small
+  A family of pdfs or pmfs is an \textbf{exponential family} if it can be written
+  \[f(x\given\boldsymbol\theta)=h(x)\,c(\boldsymbol\theta)\exp\Bigl\{\sum_{i=1}^kw_i(\boldsymbol\theta)\,t_i(x)\Bigr\},\]
+  where $h(x)\ge0$ and $t_1,\dots,t_k$ depend on $x$ only, and $c(\boldsymbol\theta)\ge0$ and $w_1,\dots,w_k$ depend on $\boldsymbol\theta$ only.
+  \end{tcolorbox}
+  \begin{itemize}\small
+    \item \textbf{Key requirement:} the $x$-part and the $\theta$-part \emph{separate}; in particular the \textbf{support cannot depend on $\theta$} (put any indicator into $h(x)$).
+    \item $c(\theta)$ is a normalizing constant: $c(\theta)=\bigl[\int h(x)e^{\sum w_it_i(x)}dx\bigr]^{-1}$.
+    \item The same family can be written in several equivalent ways.
+  \end{itemize}
+  \begin{tcolorbox}[mynote={Checklist}]\small
+  (1) support free of $\theta$; (2) take $\log f$ and see whether the $x$--$\theta$ cross terms are a sum of products $w_i(\theta)t_i(x)$.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Examples: Binomial and Poisson}
+  \begin{tcolorbox}[myex={Binomial$(n,p)$, $n$ known}]\small
+  \[f(x\given p)=\binom nxp^x(1-p)^{n-x}=\underbrace{\tbinom nx}_{h(x)}\ \underbrace{(1-p)^n}_{c(p)}\ \exp\Bigl\{\underbrace{\log\tfrac p{1-p}}_{w(p)}\,\underbrace{x}_{t(x)}\Bigr\}.\]
+  The support $\{0,\dots,n\}$ does not depend on $p$.
+  \end{tcolorbox}
+  \begin{tcolorbox}[myex={Poisson$(\lambda)$}]\small
+  \[f(x\given\lambda)=\frac{e^{-\lambda}\lambda^x}{x!}=\underbrace{\tfrac1{x!}}_{h(x)}\ \underbrace{e^{-\lambda}}_{c(\lambda)}\ \exp\bigl\{\underbrace{\log\lambda}_{w(\lambda)}\,\underbrace{x}_{t(x)}\bigr\}.\]
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Pattern}]\small
+  Binomial, Poisson, Geometric, Negative Binomial (fixed $r$) and Bernoulli all have $t(x)=x$ with $w$ a function of the parameter.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Examples: Normal and Gamma (two-parameter families)}
+  \begin{columns}[T]
+  \column{0.52\textwidth}
+  \begin{tcolorbox}[myex={Normal$(\mu,\sigma^2)$}]\small
+  \[f=\underbrace{1}_{h}\ \underbrace{\tfrac{e^{-\mu^2/2\sigma^2}}{\sqrt{2\pi}\sigma}}_{c(\mu,\sigma^2)}\exp\Bigl\{\tfrac1{\sigma^2}\bigl(-\tfrac{x^2}{2}\bigr)+\tfrac\mu{\sigma^2}\,x\Bigr\}\]
+  $k=2$: $t_1=-x^2/2,\ w_1=1/\sigma^2$; \ $t_2=x,\ w_2=\mu/\sigma^2$.
+  \end{tcolorbox}
+  \column{0.46\textwidth}
+  \begin{tcolorbox}[myex={Gamma$(\alpha,\beta)$}]\small
+  \[f=\underbrace{I(x>0)}_{h}\ \underbrace{\tfrac1{\Gamma(\alpha)\beta^\alpha}}_{c(\alpha,\beta)}\exp\Bigl\{(\alpha-1)\log x-\tfrac1\beta\,x\Bigr\}\]
+  $t_1=\log x,\ w_1=\alpha-1$; \ $t_2=x,\ w_2=-1/\beta$.
+  \end{tcolorbox}
+  \end{columns}
+  \begin{tcolorbox}[mynote={Also exponential families}]\small
+  Exponential, $\chi^2$, Beta (with $t=\log x,\ \log(1-x)$), Lognormal, Double exponential with $\mu$ known. Sufficient statistics will turn out to be $\sum t_i(X_j)$.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Non-examples}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  \begin{tcolorbox}[myquiz={Uniform$(0,\theta)$}]\small
+  $f(x\given\theta)=\frac1\theta I(0<x<\theta)$.
+  \begin{itemize}
+    \item The indicator $I(x<\theta)$ couples $x$ and $\theta$: it cannot be written as $h(x)\times c(\theta)\times\exp\{\cdots\}$.
+    \item The support depends on $\theta$.
+  \end{itemize}
+  $\Rightarrow$ \textbf{not} an exponential family.
+  \end{tcolorbox}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[myquiz={Cauchy$(\theta)$}]\small
+  $f(x\given\theta)=\frac1{\pi[1+(x-\theta)^2]}$. Here $\log f=-\log\pi-\log(1+(x-\theta)^2)$ does not split into sums of products $w(\theta)t(x)$.
+  \\ $\Rightarrow$ \textbf{not} an exponential family.
+  \end{tcolorbox}
+  \end{columns}
+  \begin{tcolorbox}[mynote={A subtle case: curved exponential families}]\small
+  $N(\mu,\mu^2)$ (variance tied to mean): $w_1=\mu^{-2}$ and $w_2=\mu^{-1}$ are functions of the single parameter $\mu$, so $d=1<k=2$. It is exponential-type but \emph{curved}; many nice properties (e.g.\ completeness, \S6) fail. For \emph{full} families the parameter dimension $d$ equals $k$.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Theorem: moments of $t(X)$ from $\log c(\theta)$}
+  \begin{tcolorbox}[mythm={Theorem (CB 3.4.2, one-parameter, $k=1$)}]\footnotesize
+  If $f(x\given\theta)=h(x)c(\theta)\exp\{w(\theta)t(x)\}$, then
+  \[\E\bigl[w'(\theta)\,t(X)\bigr]=-\frac{d}{d\theta}\log c(\theta),\]
+  \[\Var\bigl[w'(\theta)\,t(X)\bigr]=-\frac{d^2}{d\theta^2}\log c(\theta)-\E\bigl[w''(\theta)\,t(X)\bigr].\]
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Idea of the proof}]\footnotesize
+  Differentiate $\int h(x)c(\theta)e^{w(\theta)t(x)}dx=1$ once in $\theta$: $\frac{c'}c+w'\E t(X)=0$; differentiate again for the variance.
+  \end{tcolorbox}
+  \begin{tcolorbox}[mydef={Natural parameterization}]\footnotesize
+  With $\eta=w(\theta)$: $f(x\given\eta)=h(x)c^*(\eta)e^{\eta t(x)}$ and then simply
+  \[\E t(X)=-\frac{d}{d\eta}\log c^*(\eta),\quad\Var t(X)=-\frac{d^2}{d\eta^2}\log c^*(\eta),\quad\E e^{st(X)}=\frac{c^*(\eta)}{c^*(\eta+s)}.\]
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Examples: moments with no integration}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  \begin{tcolorbox}[myex={Poisson$(\lambda)$}]\small
+  $c(\lambda)=e^{-\lambda}$, $w=\log\lambda$, $t=x$. $w'=\frac1\lambda$, $w''=-\frac1{\lambda^2}$.
+  \begin{itemize}
+    \item $\E\bigl[\tfrac X\lambda\bigr]=-\tfrac d{d\lambda}(-\lambda)=1\Rightarrow\E X=\lambda$.
+    \item $\Var\bigl[\tfrac X\lambda\bigr]=0-\E\bigl[-\tfrac X{\lambda^2}\bigr]=\tfrac1\lambda\Rightarrow\Var X=\lambda$.
+  \end{itemize}
+  \end{tcolorbox}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[myex={Gamma$(\alpha,\beta)$, $\alpha$ known}]\small
+  $c(\beta)=\frac1{\Gamma(\alpha)\beta^\alpha}$, $w=-\tfrac1\beta$, $t=x$; $w'=\tfrac1{\beta^2}$, $w''=-\tfrac2{\beta^3}$; $\log c=-\alpha\log\beta+\text{const}$.
+  \begin{itemize}
+    \item $\E\bigl[\tfrac X{\beta^2}\bigr]=\tfrac\alpha\beta\Rightarrow\E X=\alpha\beta$.
+    \item $\Var\bigl[\tfrac X{\beta^2}\bigr]=-\tfrac\alpha{\beta^2}+\tfrac{2\alpha}{\beta^2}=\tfrac\alpha{\beta^2}\Rightarrow\Var X=\alpha\beta^2$.
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+  \begin{tcolorbox}[myex={Bernoulli$(p)$ in natural form}]\small
+  $\eta=\log\frac p{1-p}$, $c^*(\eta)=\frac1{1+e^\eta}$: $\ \E X=-\frac d{d\eta}\bigl[-\log(1+e^\eta)\bigr]=\frac{e^\eta}{1+e^\eta}=p$, \ $\Var X=\frac{e^\eta}{(1+e^\eta)^2}=p(1-p)$. (The logistic function appears: basis of logistic regression.)
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Summary: common exponential families}
+  \small
+  \renewcommand{\arraystretch}{1.4}
+  \begin{center}
+  \begin{tabular}{@{}lllll@{}}
+  \textbf{Family}&$\boldsymbol t(x)$&\textbf{Natural parameter(s)}&$\E t(X)$&\textbf{Note}\\\hline
+  Bernoulli$(p)$&$x$&$\log\frac p{1-p}$&$p$&logistic link\\
+  Binomial$(n,p)$&$x$&$\log\frac p{1-p}$&$np$&$n$ known\\
+  Poisson$(\lambda)$&$x$&$\log\lambda$&$\lambda$&log link\\
+  Exponential$(\beta)$&$x$&$-1/\beta$&$\beta$&\\
+  Gamma$(\alpha,\beta)$&$(\log x,\ x)$&$(\alpha-1,\ -1/\beta)$&$(\psi(\alpha)+\log\beta,\ \alpha\beta)$&2 parameters\\
+  Normal$(\mu,\sigma^2)$&$(x,\ x^2)$&$(\frac\mu{\sigma^2},\ -\frac1{2\sigma^2})$&$(\mu,\ \mu^2+\sigma^2)$&2 parameters\\
+  Beta$(\alpha,\beta)$&$(\log x,\ \log(1{-}x))$&$(\alpha,\ \beta)$&&2 parameters
+  \end{tabular}
+  \end{center}
+  \vspace{-0.4em}
+  \begin{tcolorbox}[mynote={Not exponential families}]\small
+  Uniform$(a,b)$ and any family whose support depends on the parameter; Cauchy; Weibull with unknown shape $\gamma$; Hypergeometric in $N$.
+  \end{tcolorbox}
+\end{frame}
+
+%% ---------------- Activity 1 ----------------
+\begin{frame}[t]{Activity 1 --- Exponential families }
+  \begin{tcolorbox}[myquiz={Problems}]\small
+  \begin{enumerate}[(a)]
+    \item Write Exponential$(\beta)$, $f(x)=\frac1\beta e^{-x/\beta}$, in natural form $h(x)c^*(\eta)e^{\eta t(x)}$. Identify $\eta$ and $c^*(\eta)$, and use $-\frac d{d\eta}\log c^*$ and $-\frac{d^2}{d\eta^2}\log c^*$ to find $\E X$ and $\Var X$.
+    \item Poisson$(\lambda)$: find $\eta$ and $c^*(\eta)$, and verify $\E X=\Var X=\lambda$ in the same way.
+    \item Explain why Uniform$(0,\theta)$ is not an exponential family.
+    \item For the Binomial$(n,p)$ with $n$ known, use the theorem to show $\E X=np$.
+  \end{enumerate}
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}[t]{Activity 1 --- Solutions}
+  \small
+  \begin{enumerate}[(a)]
+    \item $t(x)=x$, $\eta=-\frac1\beta<0$, $c^*(\eta)=-\eta$, $h=I(x>0)$. $\log c^*=\log(-\eta)$: $\E X=-\frac d{d\eta}\log(-\eta)=-\frac1\eta=\beta$; $\Var X=-\frac{d^2}{d\eta^2}\log(-\eta)=\frac1{\eta^2}=\beta^2$.
+    \item $\eta=\log\lambda$, $c^*(\eta)=\exp\{-e^\eta\}$, $\log c^*=-e^\eta$. $\E X=e^\eta=\lambda$, $\Var X=e^\eta=\lambda$.
+    \item The support $(0,\theta)$ depends on $\theta$: $I(0<x<\theta)$ cannot be factored into a function of $x$ times a function of $\theta$.
+    \item $c(p)=(1-p)^n$, $w=\log\frac p{1-p}$, $w'=\frac1{p(1-p)}$, $-\frac d{dp}\log c=\frac n{1-p}$. So $\E\bigl[\frac{X}{p(1-p)}\bigr]=\frac n{1-p}$ and $\E X=np$.
+  \end{enumerate}
+\end{frame}
+
+%% ================== 3.5 ==================
+\begin{frame}{\S3.5 Motivation: change of units}
+  \begin{columns}[T]
+  \column{0.52\textwidth}
+  \begin{tcolorbox}[myex={A temperature example}]\small
+  Daily high temperature $Z$ (in standardized units) has density $f(z)$.
+  \begin{itemize}
+    \item Shift the origin: $X=Z+\mu$ (a different reference point).
+    \item Change the unit: $X=\sigma Z$ (Celsius $\to$ Fahrenheit multiplies by $\tfrac95$).
+    \item Both: $X=\sigma Z+\mu$.
+  \end{itemize}
+  The \emph{shape} of the distribution is unchanged; only its position and spread change.
+  \end{tcolorbox}
+  \column{0.44\textwidth}
+  \begin{tcolorbox}[mydef={The idea}]\small
+  From \emph{one} pdf $f$ we can generate a whole family indexed by $\mu$ (location) and $\sigma>0$ (scale). Probabilities for any member reduce to probabilities for the standard member $f$.
+  \end{tcolorbox}
+  \begin{tcolorbox}[myquiz={Think}]\small
+  Which families we have seen look like ``one standard shape, shifted and stretched''? \emph{(Normal, Cauchy, double exponential, exponential, uniform.)}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Theorem: shifting and rescaling a pdf gives a pdf}
+  \begin{tcolorbox}[mythm={Theorem (CB 3.5.1)}]\small
+  Let $f(x)$ be any pdf, $\mu$ any real number and $\sigma>0$. Then $g(x\given\mu,\sigma)=\frac1\sigma\,f\!\bigl(\frac{x-\mu}\sigma\bigr)$ is also a pdf.
+  \end{tcolorbox}
+  \begin{columns}[T]
+  \column{0.44\textwidth}
+  \begin{tcolorbox}[mynote={Proof}]\footnotesize
+  $g\ge0$, and with $u=(x-\mu)/\sigma$, $dx=\sigma\,du$:\\
+  $\displaystyle\int\frac1\sigma f\Bigl(\frac{x-\mu}\sigma\Bigr)dx=\int f(u)\,du=1.\ \blacksquare$
+  \end{tcolorbox}
+  \column{0.54\textwidth}
+  \begin{tcolorbox}[mydef={Definitions (CB 3.5.2--3.5.5)}]\footnotesize
+  Given a ``standard'' pdf $f$:
+  \begin{itemize}
+    \item \textbf{Location family:} $\{f(x-\mu):\ \mu\in\R\}$.
+    \item \textbf{Scale family:} $\{\frac1\sigma f(x/\sigma):\ \sigma>0\}$.
+    \item \textbf{Location--scale family:} $\{\frac1\sigma f(\frac{x-\mu}\sigma)\}$.
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Illustration: location, scale and both}
+  \begin{center}\includegraphics[width=0.95\textwidth]{fig/locscale.pdf}\end{center}
+  \begin{columns}[T]
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[mynote={Reading the picture}]\small
+  The dashed curve is the standard pdf $f$. A location parameter slides it left/right; a scale parameter stretches it horizontally (and compresses it vertically so the area stays $1$).
+  \end{tcolorbox}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[myex={Examples}]\small
+  \begin{itemize}
+    \item $f=$ standard normal: $N(\mu,\sigma^2)$.
+    \item $f=\frac1\pi\frac1{1+z^2}$: Cauchy$(\mu,\sigma)$.
+    \item $f=\frac12e^{-|z|}$: double exponential$(\mu,\sigma)$.
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Examples of location, scale and location--scale families}
+  \small
+  \renewcommand{\arraystretch}{1.15}
+  \begin{center}
+  \begin{tabular}{@{}lll@{}}
+  \textbf{Family}&\textbf{Type}&\textbf{Standard pdf $f$}\\\hline
+  Normal$(\mu,1)$&location&$\frac1{\sqrt{2\pi}}e^{-z^2/2}$\\
+  Normal$(0,\sigma^2)$&scale&$\frac1{\sqrt{2\pi}}e^{-z^2/2}$\\
+  Normal$(\mu,\sigma^2)$&location--scale&$\frac1{\sqrt{2\pi}}e^{-z^2/2}$\\
+  Exponential$(\beta)$&scale ($\sigma=\beta$)&$e^{-z}$, $z>0$\\
+  Uniform$(0,\theta)$&scale ($\sigma=\theta$)&$1$ on $(0,1)$\\
+  Uniform$(a,b)$&location--scale ($\mu=a,\sigma=b-a$)&$1$ on $(0,1)$\\
+  Cauchy$(\mu,\sigma)$&location--scale&$\frac1{\pi(1+z^2)}$\\
+  Double exponential$(\mu,\sigma)$&location--scale&$\frac12e^{-|z|}$\\
+  Gamma$(\alpha,\beta)$, $\alpha$ fixed&scale ($\sigma=\beta$)&Gamma$(\alpha,1)$ pdf
+  \end{tabular}
+  \end{center}
+  \begin{tcolorbox}[mynote={Caution}]\footnotesize
+  Uniform$(0,\theta)$ is a scale family but not an exponential family; Normal is both; Gamma$(\alpha,\beta)$ with \emph{both} parameters free is exponential but not location--scale.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Representation theorem: $X=\sigma Z+\mu$}
+  \begin{tcolorbox}[mythm={Theorem (CB 3.5.6)}]\small
+  Let $f$ be any pdf, $\mu\in\R$, $\sigma>0$. Then $X$ has pdf $\frac1\sigma f\bigl(\frac{x-\mu}\sigma\bigr)$ \textbf{if and only if} there is a random variable $Z$ with pdf $f$ such that $X=\sigma Z+\mu$.
+  \end{tcolorbox}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  \begin{tcolorbox}[mynote={Proof ($\Leftarrow$)}]\small
+  $F_X(x)=P(\sigma Z+\mu\le x)=F_Z\bigl(\frac{x-\mu}\sigma\bigr)$; differentiate: $f_X(x)=\frac1\sigma f\bigl(\frac{x-\mu}\sigma\bigr)$. ($\Rightarrow$): reverse the steps with $Z=(X-\mu)/\sigma$.
+  \end{tcolorbox}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[mydef={Consequences}]\small
+  \begin{itemize}
+    \item $P(X\le x)=P\bigl(Z\le\frac{x-\mu}\sigma\bigr)$
+    \item $\E X=\sigma\E Z+\mu$, $\Var X=\sigma^2\Var Z$ (when they exist)
+    \item $(X-\mu)/\sigma$ has a distribution \textbf{free of the parameters}: a \emph{pivot} (\S9)
+    \item Quantiles: $x_p=\sigma z_p+\mu$
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Examples: using the representation}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  \begin{tcolorbox}[myex={Exponential with mean 2}]\small
+  $X=2Z$ with $Z\sim\mathrm{Exp}(1)$.
+  \begin{itemize}
+    \item $P(X>3)=P(Z>1.5)=e^{-1.5}\approx0.223$.
+    \item Median: $2\cdot\ln2\approx1.386$.
+    \item $\E X=2\cdot1$, $\Var X=4\cdot1$.
+  \end{itemize}
+  \end{tcolorbox}
+  \begin{center}\includegraphics[width=0.8\textwidth]{fig/expscale.pdf}\end{center}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[myex={Cauchy$(\mu,\sigma)$}]\small
+  $X=\sigma Z+\mu$, $Z$ standard Cauchy.
+  \begin{itemize}
+    \item The median is $\mu$ (not a mean: none exists!).
+    \item $P(|X-\mu|<\sigma)=P(|Z|<1)=\frac2\pi\arctan1=\tfrac12$.
+    \item So $\mu\pm\sigma$ are the \emph{quartiles}: $\sigma$ is the interquartile half-range.
+  \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Takeaway}]\scriptsize
+  For location--scale families the parameters mean ``center'' and ``spread'' even when $\E$ and $\Var$ do not exist.
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+%% ---------------- Activity 2 ----------------
+\begin{frame}[t]{Activity 2 --- Location--scale families}
+  \begin{tcolorbox}[myquiz={Problems}]\small
+  \begin{enumerate}[(a)]
+    \item Show that $g(x)=\frac1\sigma f\bigl(\frac{x-\mu}\sigma\bigr)$ with $f(z)=\tfrac12e^{-|z|}$ is the double exponential$(\mu,\sigma)$. If $Z\sim f$, use $\E Z=0$, $\Var Z=2$ to find $\E X$ and $\Var X$ for $X=\sigma Z+\mu$.
+    \item $X\sim\mathrm{Uniform}(5,9)$. Write $X=\sigma Z+\mu$ with $Z\sim\mathrm{Uniform}(0,1)$. Find $\mu,\sigma$, then $\E X$, $\Var X$.
+    \item $X\sim\mathrm{Cauchy}(3,2)$. Find $P(1<X<5)$ and $P(X>3)$.
+    \item True or false: ``Every location--scale family has a mean.'' Give a counterexample.
+  \end{enumerate}
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}[t]{Activity 2 --- Solutions}
+  \small
+  \begin{enumerate}[(a)]
+    \item $g(x)=\frac1{2\sigma}e^{-|x-\mu|/\sigma}$. $\E X=\sigma\cdot0+\mu=\mu$, $\Var X=\sigma^2\cdot2=2\sigma^2$.
+    \item $\mu=5$, $\sigma=4$ ($X=4Z+5$). $\E X=4\cdot\frac12+5=7$, $\Var X=16\cdot\frac1{12}=\frac43$.
+    \item $X=2Z+3$: $P(1<X<5)=P(-1<Z<1)=\tfrac12$; $P(X>3)=P(Z>0)=\tfrac12$.
+    \item False. Cauchy$(\mu,\sigma)$ is a location--scale family with no mean.
+  \end{enumerate}
+\end{frame}
+
+%% ================== 3.6 ==================
+\begin{frame}{\S3.6 Motivation: when exact probabilities are out of reach}
+  \begin{columns}[T]
+  \column{0.52\textwidth}
+  \begin{tcolorbox}[myex={Situations}]\small
+  \begin{itemize}
+    \item You only know $\E X$ and $\Var X$, not the distribution.
+    \item The cdf has no closed form (e.g.\ the normal) but you need a quick, safe bound.
+    \item A moment such as $\E X^6$ would need a nasty integral or sum.
+  \end{itemize}
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Plan}]\small
+  \textbf{Inequalities:} Chebyshev-type bound, a normal tail bound.\\
+  \textbf{Identities:} Stein's lemma (normal) and its Poisson analogue: recursions for moments.
+  \end{tcolorbox}
+  \column{0.44\textwidth}
+  \begin{tcolorbox}[myquiz={Quick quiz}]\small
+  A random variable has $\E X=50$ and $\Var X=25$. At least what fraction of its probability lies in $(40,60)$?\\[2pt]
+  \emph{(Chebyshev: $P(|X-50|\ge10)\le\frac{25}{100}$, so at least $75\%$.)}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Chebyshev's inequality (general form)}
+  \begin{tcolorbox}[mythm={Theorem (CB 3.6.1)}]\small
+  Let $X$ be a random variable and $g(x)\ge0$ a nonnegative function. Then for every $r>0$
+  \[P\bigl(g(X)\ge r\bigr)\le\frac{\E\,g(X)}{r}.\]
+  \end{tcolorbox}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  \begin{tcolorbox}[mynote={Proof (continuous)}]\small
+  \begin{align*}\E g(X)&\ge\int_{\{g\ge r\}}g(x)f(x)dx\\&\ge r\!\int_{\{g\ge r\}}\!f(x)dx=rP(g(X)\ge r).\end{align*}
+  \end{tcolorbox}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[mydef={Special cases}]\small
+  \begin{itemize}
+    \item $g(x)=x$ ($X\ge0$): \textbf{Markov}, $P(X\ge r)\le\E X/r$.
+    \item $g(x)=\frac{(x-\mu)^2}{\sigma^2}$, $r=t^2$: \textbf{Chebyshev}, $P(|X-\mu|\ge t\sigma)\le\frac1{t^2}$.
+    \item $g(x)=e^{sx}$: \textbf{Chernoff}, $P(X\ge a)\le e^{-sa}M_X(s)$.
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Example: the choice of $g$ matters}
+  \begin{tcolorbox}[myex={$X\sim\mathrm{Exponential}(1)$: bound $P(X\ge4)$}]\small
+  \renewcommand{\arraystretch}{1.45}
+  \begin{center}
+  \begin{tabular}{@{}lll@{}}
+  \textbf{Choice of $g$}&\textbf{Bound}&\textbf{Value}\\\hline
+  $g(x)=x$ (Markov)&$\E X/4$&$0.250$\\
+  $g(x)=x^2$&$\E X^2/16=2/16$&$0.125$\\
+  $g(x)=(x-1)^2$, $\{|X-1|\ge3\}\supseteq\{X\ge4\}$&$\Var X/9$&$0.111$\\
+  $g(x)=e^{sx}$, best $s=\frac34$ (Chernoff)&$4e^{-3}$&$0.199$\\\hline
+  \textbf{True value}&$e^{-4}$&$\mathbf{0.0183}$
+  \end{tabular}
+  \end{center}
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Lessons}]\small
+  All bounds are valid but crude: Chebyshev-type inequalities use almost no information about the distribution. They are most useful for \emph{theory} (Ch.~5), where a crude bound is enough, not for numerical probabilities.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{A sharper bound for the normal}
+  \begin{columns}[T]
+  \column{0.52\textwidth}
+  \begin{tcolorbox}[mythm={Normal tail inequality}]\small
+  For $Z\sim N(0,1)$ and $t>0$:
+  \[P(|Z|\ge t)\le\sqrt{\frac2\pi}\ \frac{e^{-t^2/2}}{t}.\]
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Proof}]\small
+  For $z\ge t$: $1\le z/t$. So
+  \[P(Z\ge t)\le\int_t^\infty\frac zt\frac{e^{-z^2/2}}{\sqrt{2\pi}}dz=\frac{e^{-t^2/2}}{t\sqrt{2\pi}}.\]
+  Double for $|Z|$ by symmetry.
+  \end{tcolorbox}
+  \column{0.46\textwidth}
+  \begin{center}\includegraphics[width=\textwidth]{fig/tails.pdf}\end{center}
+  \small\begin{center}
+  \begin{tabular}{@{}cccc@{}}
+  $t$&exact&normal bd&Cheb.\\\hline
+  1&0.317&0.484&1\\
+  2&0.0455&0.0540&0.25\\
+  3&0.0027&0.0030&0.111
+  \end{tabular}
+  \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Stein's lemma (a normal identity)}
+  \begin{tcolorbox}[mythm={Lemma (Stein; CB 3.6.5)}]\small
+  Let $X\sim N(\theta,\sigma^2)$ and $g$ a differentiable function with $\E|g'(X)|<\infty$. Then
+  \[\E\bigl[g(X)(X-\theta)\bigr]=\sigma^2\,\E\,g'(X).\]
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Proof}]\small
+  The normal pdf satisfies $f'(x)=-\frac{x-\theta}{\sigma^2}f(x)$, i.e.\ $(x-\theta)f(x)=-\sigma^2f'(x)$. Integrate by parts:
+  \[\E[g(X)(X-\theta)]=-\sigma^2\!\int g(x)f'(x)dx=-\sigma^2\bigl[g f\bigr]_{-\infty}^{\infty}+\sigma^2\!\int g'(x)f(x)dx=\sigma^2\E g'(X),\]
+  because $g(x)f(x)\to0$ at $\pm\infty$ under the moment condition.
+  \end{tcolorbox}
+  \begin{tcolorbox}[mydef={In words}]\small
+  Covariance of $X$ with $g(X)$ equals $\sigma^2$ times the average slope of $g$. Differentiation replaces integration.
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}{Stein's lemma: examples}
+  \begin{columns}[T]
+  \column{0.52\textwidth}
+  \begin{tcolorbox}[myex={Higher moments of $N(\theta,\sigma^2)$}]\small
+  Take $g(x)=(x-\theta)^n$, $g'(x)=n(x-\theta)^{n-1}$:
+  \[\E(X-\theta)^{n+1}=\sigma^2\,n\,\E(X-\theta)^{n-1}.\]
+  \begin{itemize}
+    \item $n=1$: $\E(X-\theta)^2=\sigma^2$.
+    \item $n=3$: $\E(X-\theta)^4=3\sigma^2\cdot\sigma^2=3\sigma^4$.
+    \item $n=5$: $\E(X-\theta)^6=5\sigma^2\cdot3\sigma^4=15\sigma^6$.
+  \end{itemize}
+  \end{tcolorbox}
+  \column{0.46\textwidth}
+  \begin{tcolorbox}[myex={The normal mgf, again}]\small
+  $g(x)=e^{sx}$, $g'=se^{sx}$:
+  $\E[(X-\theta)e^{sX}]=\sigma^2s\,M(s)$, i.e.
+  \[M'(s)=(\theta+\sigma^2s)M(s),\quad M(0)=1.\]
+  Solving the ODE: $M(s)=e^{\theta s+\sigma^2s^2/2}$.
+  \end{tcolorbox}
+  \begin{tcolorbox}[mynote={Remark}]\scriptsize
+  Stein's lemma is also the starting point of Stein's method for normal approximation, and of shrinkage estimation (James--Stein).
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{A Poisson identity}
+  \begin{tcolorbox}[mythm={Lemma (Poisson identity; CB 3.6.8)}]\small
+  Let $X\sim\mathrm{Poisson}(\lambda)$ and $g$ any function with $\E|g(X)|<\infty$. Then
+  \[\E\bigl[X\,g(X)\bigr]=\lambda\,\E\,g(X+1).\]
+  \end{tcolorbox}
+  \begin{columns}[T]
+  \column{0.5\textwidth}
+  \begin{tcolorbox}[mynote={Proof}]\small
+  \begin{align*}\E[Xg(X)]&=\sum_{x=1}^\infty x\,g(x)\frac{e^{-\lambda}\lambda^x}{x!}=\sum_{x=1}^\infty g(x)\frac{e^{-\lambda}\lambda^x}{(x-1)!}\\&=\lambda\sum_{y=0}^\infty g(y+1)\frac{e^{-\lambda}\lambda^y}{y!}=\lambda\E g(X+1).\end{align*}
+  \end{tcolorbox}
+  \column{0.48\textwidth}
+  \begin{tcolorbox}[myex={Moments of Poisson$(\lambda)$}]\small
+  \begin{itemize}
+    \item $g(x)=1$: $\E X=\lambda$.
+    \item $g(x)=x$: $\E X^2=\lambda\E(X+1)=\lambda^2+\lambda$, so $\Var X=\lambda$.
+    \item $g(x)=x^2$: $\E X^3=\lambda\E(X+1)^2=\lambda(\lambda^2+\lambda+2\lambda+1)=\lambda^3+3\lambda^2+\lambda$.
+  \end{itemize}
+  \end{tcolorbox}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Summary of \S3.4--3.6}
+  \small
+  \renewcommand{\arraystretch}{1.5}
+  \begin{center}
+  \begin{tabular}{@{}p{3.1cm}p{6.2cm}p{3.5cm}@{}}
+  \textbf{Topic}&\textbf{Key statement}&\textbf{Use}\\\hline
+  Exponential family&$f=h(x)c(\theta)\exp\{\sum w_i(\theta)t_i(x)\}$; $\E t(X)=-\frac d{d\eta}\log c^*(\eta)$&moments without integrals\\
+  Location--scale&$X=\sigma Z+\mu$, $f_X=\frac1\sigma f(\frac{x-\mu}\sigma)$&reduce to standard $Z$; pivots\\
+  Chebyshev&$P(g(X)\ge r)\le\E g(X)/r$&crude bounds from moments\\
+  Normal tail bound&$P(|Z|\ge t)\le\sqrt{2/\pi}\,e^{-t^2/2}/t$&sharper than Chebyshev\\
+  Stein's lemma&$\E[g(X)(X-\theta)]=\sigma^2\E g'(X)$&normal moments\\
+  Poisson identity&$\E[Xg(X)]=\lambda\E g(X+1)$&Poisson moments
+  \end{tabular}
+  \end{center}
+\end{frame}
+
+%% ---------------- Activity 3 ----------------
+\begin{frame}[t]{Activity 3 --- Inequalities and identities}
+  \begin{tcolorbox}[myquiz={Problems}]\small
+  \begin{enumerate}[(a)]
+    \item $X\sim N(0,1)$. Use Stein's lemma to find $\E X^4$ and $\E X^6$.
+    \item $X\sim\mathrm{Poisson}(2)$. Use the Poisson identity to find $\E X^3$.
+    \item $X\sim\mathrm{Exponential}(1)$. Use Chebyshev's inequality with $g(x)=x^2$ to bound $P(X\ge4)$. Compare with the exact value.
+    \item For $Z\sim N(0,1)$, compare Chebyshev and the normal tail inequality for $P(|Z|\ge2)$.
+    \item Which family (if any) is an exponential family: Uniform$(0,\theta)$; Poisson$(\lambda)$; Cauchy$(\theta)$?
+  \end{enumerate}
+  \end{tcolorbox}
+\end{frame}
+
+\begin{frame}[t]{Activity 3 --- Solutions}
+  \small
+  \begin{enumerate}[(a)]
+    \item $\E X^4=3\cdot1\cdot\E X^2=3$ (Stein, $g=x^3$). $\E X^6=5\,\E X^4=15$.
+    \item $\E X^3=\lambda\E(X+1)^2=2(\E X^2+2\E X+1)=2(6+4+1)=22$ (with $\E X^2=\lambda^2+\lambda=6$).
+    \item $P(X\ge4)=P(X^2\ge16)\le\E X^2/16=2/16=0.125$; exact $e^{-4}\approx0.0183$.
+    \item Chebyshev: $\le\frac14$. Normal bound: $\sqrt{2/\pi}\,e^{-2}/2\approx0.054$. Exact: $0.0455$.
+    \item Only Poisson$(\lambda)$.
+  \end{enumerate}
+  \bigskip
+  \begin{tcolorbox}[mynote={Next}]\small Chapter 4: joint, marginal and conditional distributions; independence; covariance.\end{tcolorbox}
+\end{frame}
+
+\end{document}
